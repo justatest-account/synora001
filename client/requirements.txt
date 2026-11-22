@@ -1,0 +1,7 @@
+kivy>=2.3.0
+websocket-client>=1.7
+cryptography>=42
+certifi
+arabic-reshaper==3.0.0
+python-bidi==0.4.2
+six

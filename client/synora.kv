@@ -1,0 +1,611 @@
+#:import dp kivy.metrics.dp
+#:import sp kivy.metrics.sp
+#:import SlideTransition kivy.uix.screenmanager.SlideTransition
+#:set BG (0.05, 0.07, 0.14, 1)
+#:set SURF (0.09, 0.12, 0.22, 1)
+#:set SURF2 (0.14, 0.18, 0.32, 1)
+#:set ACC (0.43, 0.36, 0.98, 1)
+#:set ACC2 (0.13, 0.82, 0.88, 1)
+#:set TXT (0.93, 0.95, 1, 1)
+#:set MUT (0.58, 0.63, 0.78, 1)
+#:set DNG (1, 0.42, 0.48, 1)
+#:set GRN (0.25, 0.85, 0.55, 1)
+#:set WARN (1, 0.72, 0.3, 1)
+
+<Label>:
+    color: TXT
+    font_size: sp(15)
+
+# ---------------------------------------------------------------- basic widgets
+<LogoMark@Widget>:
+    size_hint: None, None
+    size: dp(72), dp(72)
+    canvas:
+        Color:
+            rgba: 0.43, 0.36, 0.98, 0.95
+        Ellipse:
+            pos: self.x, self.y + self.height * 0.18
+            size: self.width * 0.64, self.height * 0.64
+        Color:
+            rgba: 0.13, 0.82, 0.88, 0.85
+        Ellipse:
+            pos: self.x + self.width * 0.36, self.y + self.height * 0.18
+            size: self.width * 0.64, self.height * 0.64
+
+<Header@BoxLayout>:
+    size_hint_y: None
+    height: dp(60)
+    padding: dp(14), dp(8)
+    spacing: dp(6)
+    canvas.before:
+        Color:
+            rgba: SURF
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<LinkLabel@ButtonBehavior+Label>:
+    color: ACC2
+    opacity: 0.6 if self.state == 'down' else 1
+
+<Icon>:
+    opacity: 0.6 if self.state == 'down' else 1
+
+<PillButton>:
+    size_hint_y: None
+    height: dp(50)
+    bold: True
+    font_size: sp(16)
+    opacity: 0.85 if self.state == 'down' else (0.5 if self.disabled else 1)
+    canvas.before:
+        Color:
+            rgba: self.bg
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.height / 2]
+
+<Field>:
+    multiline: False
+    write_tab: False
+    background_normal: ''
+    background_active: ''
+    background_disabled_normal: ''
+    background_color: 0, 0, 0, 0
+    foreground_color: TXT
+    disabled_foreground_color: MUT
+    cursor_color: ACC2
+    selection_color: 0.43, 0.36, 0.98, 0.35
+    hint_text_color: MUT
+    font_size: sp(16)
+    size_hint_y: None
+    height: dp(50)
+    padding: [dp(16), max(0, (self.height - self.line_height) / 2)]
+    canvas.before:
+        Color:
+            rgba: SURF2
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(14)]
+        Color:
+            rgba: ACC2 if self.focus else (0, 0, 0, 0)
+        Line:
+            rounded_rectangle: (self.x, self.y, self.width, self.height, dp(14))
+            width: dp(1.3)
+
+<Avatar>:
+    size_hint: None, None
+    size: dp(46), dp(46)
+    bold: True
+    font_size: sp(18)
+    canvas.before:
+        Color:
+            rgba: self.bg
+        Ellipse:
+            pos: self.pos
+            size: self.size
+    canvas.after:
+        Color:
+            rgba: SURF if self.online else (0, 0, 0, 0)
+        Ellipse:
+            pos: self.right - dp(15), self.y - dp(1)
+            size: dp(15), dp(15)
+        Color:
+            rgba: GRN if self.online else (0, 0, 0, 0)
+        Ellipse:
+            pos: self.right - dp(13), self.y + dp(1)
+            size: dp(11), dp(11)
+
+<MsgLabel>:
+    size_hint: None, None
+    size: self.texture_size
+    halign: 'right' if self.rtl else 'left'
+    font_size: sp(16)
+
+<ChatItem>:
+    size_hint_y: None
+    height: dp(72)
+    padding: dp(14), dp(10)
+    spacing: dp(12)
+    canvas.before:
+        Color:
+            rgba: SURF2 if self.state == 'down' else (0, 0, 0, 0)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    Avatar:
+        text: root.initial
+        bg: root.color
+        online: root.online
+        pos_hint: {'center_y': 0.5}
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: dp(2)
+        Label:
+            text: root.title
+            bold: True
+            font_size: sp(16)
+            halign: 'left'
+            valign: 'bottom'
+            text_size: self.size
+        Label:
+            text: root.preview
+            color: MUT
+            font_size: sp(13)
+            halign: 'right' if root.prev_rtl else 'left'
+            valign: 'top'
+            text_size: self.size
+            shorten: True
+            shorten_from: 'right'
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_x: None
+        width: dp(54)
+        spacing: dp(4)
+        Label:
+            text: root.time_text
+            color: MUT
+            font_size: sp(11)
+            halign: 'right'
+            valign: 'bottom'
+            text_size: self.size
+        AnchorLayout:
+            anchor_x: 'right'
+            Label:
+                size_hint: None, None
+                size: dp(22), dp(22)
+                text: str(root.unread) if root.unread else ''
+                font_size: sp(11)
+                bold: True
+                canvas.before:
+                    Color:
+                        rgba: ACC if root.unread else (0, 0, 0, 0)
+                    Ellipse:
+                        pos: self.pos
+                        size: self.size
+
+<Bubble>:
+    orientation: 'vertical'
+    size_hint: None, None
+    padding: dp(12), dp(8), dp(12), dp(6)
+    spacing: dp(2)
+    width: max(lbl.width, meta.width) + dp(24)
+    height: lbl.height + dp(14) + dp(14) + dp(2)
+    canvas.before:
+        Color:
+            rgba: ACC if root.mine else SURF2
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(18), dp(18), dp(4) if root.mine else dp(18), dp(18) if root.mine else dp(4)]
+    AnchorLayout:
+        anchor_x: 'right' if lbl.rtl else 'left'
+        size_hint_y: None
+        height: lbl.height
+        MsgLabel:
+            id: lbl
+            raw: root.raw
+            max_w: root.max_w
+    AnchorLayout:
+        anchor_x: 'right'
+        size_hint_y: None
+        height: dp(14)
+        BoxLayout:
+            id: meta
+            size_hint: None, 1
+            width: tl.texture_size[0] + (dp(20) if root.mine else 0)
+            spacing: dp(4)
+            Label:
+                id: tl
+                text: root.time_text
+                font_size: sp(10)
+                color: 1, 1, 1, 0.7
+                size_hint_x: None
+                width: self.texture_size[0]
+            Ticks:
+                size_hint_x: None
+                width: dp(16) if root.mine else 0
+                count: root.status
+
+# ---------------------------------------------------------------- screens
+<AuthScreen>:
+    name: 'auth'
+    FloatLayout:
+        GradientBg:
+            top: 0.13, 0.09, 0.36, 1
+            bottom: BG
+        ScrollView:
+            do_scroll_x: False
+            bar_width: 0
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                padding: dp(24), dp(64), dp(24), dp(24)
+                spacing: dp(12)
+                AnchorLayout:
+                    size_hint_y: None
+                    height: dp(84)
+                    LogoMark:
+                Label:
+                    text: 'SYNORA'
+                    bold: True
+                    font_size: sp(38)
+                    size_hint_y: None
+                    height: dp(50)
+                Label:
+                    text: app.tr('tagline', app.lang)
+                    color: ACC2
+                    font_size: sp(14)
+                    size_hint_y: None
+                    height: dp(24)
+                Widget:
+                    size_hint_y: None
+                    height: dp(10)
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: dp(20)
+                    spacing: dp(12)
+                    canvas.before:
+                        Color:
+                            rgba: SURF
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(26)]
+                    Label:
+                        text: app.tr('login' if root.mode == 'login' else 'register', app.lang)
+                        bold: True
+                        font_size: sp(22)
+                        size_hint_y: None
+                        height: dp(34)
+                    Field:
+                        id: user_in
+                        hint_text: app.tr('username', app.lang)
+                        halign: 'right' if app.rtl else 'left'
+                        input_filter: root.user_filter
+                    Field:
+                        id: pw_in
+                        password: True
+                        hint_text: app.tr('password', app.lang)
+                        halign: 'right' if app.rtl else 'left'
+                        on_text_validate: root.submit()
+                    Field:
+                        id: pw2_in
+                        password: True
+                        hint_text: app.tr('confirm_password', app.lang)
+                        halign: 'right' if app.rtl else 'left'
+                        opacity: 1 if root.mode == 'register' else 0
+                        disabled: root.mode != 'register'
+                        height: dp(50) if root.mode == 'register' else 0
+                        on_text_validate: root.submit()
+                    Label:
+                        text: app.tr(app.err_key, app.lang) if app.err_key else ''
+                        color: DNG
+                        font_size: sp(13)
+                        size_hint_y: None
+                        height: dp(20) if self.text else 0
+                    PillButton:
+                        text: app.tr('connecting', app.lang) if app.busy else app.tr('login' if root.mode == 'login' else 'create_account', app.lang)
+                        bg: ACC
+                        disabled: app.busy
+                        on_release: root.submit()
+                    LinkLabel:
+                        text: app.tr('no_account' if root.mode == 'login' else 'have_account', app.lang)
+                        size_hint_y: None
+                        height: dp(36)
+                        on_release: root.toggle_mode()
+                Label:
+                    text: app.tr('server', app.lang)
+                    color: MUT
+                    font_size: sp(12)
+                    size_hint_y: None
+                    height: dp(22)
+                Field:
+                    id: server_in
+                    text: app.server_url
+                    on_text: app.server_url = self.text
+                    font_size: sp(13)
+                    height: dp(42)
+        Icon:
+            kind: 'globe'
+            size_hint: None, None
+            size: dp(44), dp(44)
+            pos_hint: {'right': 0.97, 'top': 0.985}
+            on_release: app.toggle_lang()
+
+<ChatsScreen>:
+    name: 'chats'
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: BG
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        Header:
+            Label:
+                text: 'SYNORA'
+                bold: True
+                font_size: sp(22)
+                halign: 'left'
+                valign: 'middle'
+                text_size: self.size
+            Icon:
+                kind: 'globe'
+                size_hint_x: None
+                width: dp(40)
+                on_release: app.toggle_lang()
+            Icon:
+                kind: 'dots'
+                size_hint_x: None
+                width: dp(40)
+                on_release: app.go('settings', 'left')
+        Label:
+            text: app.tr('conn_' + app.conn_state, app.lang)
+            color: GRN if app.conn_state == 'online' else WARN
+            font_size: sp(12)
+            size_hint_y: None
+            height: 0 if app.conn_state == 'online' else dp(22)
+            opacity: 0 if app.conn_state == 'online' else 1
+        BoxLayout:
+            size_hint_y: None
+            height: dp(68)
+            padding: dp(12), dp(9)
+            spacing: dp(8)
+            Field:
+                id: new_user
+                hint_text: app.tr('new_chat_hint', app.lang)
+                halign: 'right' if app.rtl else 'left'
+                input_filter: root.user_filter
+                pos_hint: {'center_y': 0.5}
+                on_text_validate: root.start_chat()
+            Icon:
+                kind: 'plus'
+                bg: ACC
+                size_hint: None, None
+                size: dp(48), dp(48)
+                pos_hint: {'center_y': 0.5}
+                on_release: root.start_chat()
+        Label:
+            text: app.tr('no_chats', app.lang)
+            color: MUT
+            size_hint_y: None
+            height: dp(110) if root.empty else 0
+            opacity: 1 if root.empty else 0
+        ScrollView:
+            do_scroll_x: False
+            bar_width: dp(3)
+            BoxLayout:
+                id: chat_list
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+
+<ConvScreen>:
+    name: 'conv'
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: BG
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        Header:
+            Icon:
+                kind: 'back'
+                size_hint_x: None
+                width: dp(40)
+                on_release: app.back_to_chats()
+            Avatar:
+                size: dp(40), dp(40)
+                text: root.initial
+                bg: root.color
+                online: root.online
+                pos_hint: {'center_y': 0.5}
+            BoxLayout:
+                orientation: 'vertical'
+                padding: dp(6), 0
+                Label:
+                    text: root.peer
+                    bold: True
+                    font_size: sp(16)
+                    halign: 'left'
+                    valign: 'bottom'
+                    text_size: self.size
+                Label:
+                    text: app.tr('online' if root.online else 'offline', app.lang)
+                    color: GRN if root.online else MUT
+                    font_size: sp(12)
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+            Icon:
+                kind: 'lock'
+                size_hint_x: None
+                width: dp(40)
+                col: WARN if root.key_changed else ACC2
+                on_release: root.show_safety()
+        Label:
+            text: app.tr('key_changed', app.lang) if root.key_changed else ''
+            color: WARN
+            font_size: sp(12)
+            size_hint_y: None
+            height: dp(26) if root.key_changed else 0
+        ScrollView:
+            id: scroll
+            do_scroll_x: False
+            bar_width: dp(3)
+            BoxLayout:
+                id: msgs
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                padding: dp(12)
+                spacing: dp(6)
+        BoxLayout:
+            size_hint_y: None
+            height: dp(68)
+            padding: dp(10), dp(10)
+            spacing: dp(8)
+            canvas.before:
+                Color:
+                    rgba: SURF
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            ShapedInput:
+                id: msg_in
+                hint_text: app.tr('type_message', app.lang)
+                pos_hint: {'center_y': 0.5}
+                on_text_validate: root.send()
+            Icon:
+                kind: 'send'
+                bg: ACC
+                size_hint: None, None
+                size: dp(48), dp(48)
+                pos_hint: {'center_y': 0.5}
+                on_release: root.send()
+
+<SettingsScreen>:
+    name: 'settings'
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: BG
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        Header:
+            Icon:
+                kind: 'back'
+                size_hint_x: None
+                width: dp(40)
+                on_release: app.go('chats', 'right')
+            Label:
+                text: app.tr('settings', app.lang)
+                bold: True
+                font_size: sp(20)
+                halign: 'left'
+                valign: 'middle'
+                text_size: self.size
+        ScrollView:
+            do_scroll_x: False
+            bar_width: dp(3)
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                padding: dp(18)
+                spacing: dp(12)
+                Label:
+                    text: root.me_text
+                    bold: True
+                    font_size: sp(18)
+                    color: ACC2
+                    size_hint_y: None
+                    height: dp(30)
+                Label:
+                    text: app.tr('language', app.lang)
+                    color: MUT
+                    font_size: sp(13)
+                    size_hint_y: None
+                    height: dp(22)
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(50)
+                    spacing: dp(10)
+                    PillButton:
+                        text: app.name_fa
+                        bg: ACC if app.lang == 'fa' else SURF2
+                        on_release: app.set_lang('fa')
+                    PillButton:
+                        text: 'English'
+                        bg: ACC if app.lang == 'en' else SURF2
+                        on_release: app.set_lang('en')
+                Label:
+                    text: app.tr('server', app.lang)
+                    color: MUT
+                    font_size: sp(13)
+                    size_hint_y: None
+                    height: dp(22)
+                Field:
+                    text: app.server_url
+                    on_text: app.server_url = self.text
+                    font_size: sp(13)
+                Label:
+                    text: app.tr('my_key', app.lang)
+                    color: MUT
+                    font_size: sp(13)
+                    size_hint_y: None
+                    height: dp(22)
+                Label:
+                    text: root.key_text
+                    font_size: sp(13)
+                    size_hint_y: None
+                    height: dp(48)
+                    text_size: self.width, None
+                Widget:
+                    size_hint_y: None
+                    height: dp(8)
+                PillButton:
+                    text: app.tr('logout', app.lang)
+                    bg: DNG
+                    on_release: app.logout()
+                Label:
+                    text: app.tr('about', app.lang)
+                    color: MUT
+                    font_size: sp(12)
+                    size_hint_y: None
+                    height: dp(50)
+                    halign: 'center'
+
+# ---------------------------------------------------------------- root
+FloatLayout:
+    ScreenManager:
+        id: sm
+        transition: SlideTransition(duration=0.2)
+        AuthScreen:
+        ChatsScreen:
+        ConvScreen:
+        SettingsScreen:
+    Label:
+        id: toast
+        size_hint: None, None
+        size: self.texture_size[0] + dp(36), dp(40)
+        pos_hint: {'center_x': 0.5}
+        y: dp(96)
+        opacity: 0
+        canvas.before:
+            Color:
+                rgba: SURF2
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [dp(20)]
