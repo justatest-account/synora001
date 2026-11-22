@@ -1,0 +1,13 @@
+# Optional Render Blueprint. If Render asks for payment info for Blueprints,
+# skip this file and create the Web Service manually (see README.md).
+services:
+  - type: web
+    name: synora-relay
+    runtime: python
+    plan: free
+    buildCommand: pip install -r server/requirements.txt
+    startCommand: python server/server.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
